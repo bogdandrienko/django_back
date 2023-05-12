@@ -2,6 +2,7 @@ import aiohttp
 from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.shortcuts import render
 import requests
+from django.core.cache import cache
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -9,7 +10,10 @@ def index(request: HttpRequest) -> HttpResponse:
 
 
 def api(request: HttpRequest) -> JsonResponse:
-    data = requests.get("http://127.0.0.1:8003/api").json()
+    data = cache.get('api')
+    if data is None:
+        data = requests.get("http://127.0.0.1:8003/api").json()
+        cache.set('api', data, timeout=10)
     print(data)
     return JsonResponse(data=data, safe=False)
     # async with aiohttp.ClientSession() as session:
